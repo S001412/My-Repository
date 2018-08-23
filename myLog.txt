@@ -1,1 +1,2 @@
 8.23	建立自己的仓库，通过ssh生成秘钥，将公用秘钥添加至github账户，实现远程连接，并commit本地文件。
+git  commit -m "#23 xxxx"
