@@ -70,15 +70,15 @@ def word_vectorization(word_model, array, row_array, limit):
     return res_array
 
 
-user_data = pd.read_excel('评论信息+用户信息.xlsx')
+user_data = pd.read_excel('评论信息+用户信息.xlsx'.encode('utf-8'))
 # user_data = user_data[['有用数', '感谢次数', '总分', '评论数', '读者数', '景点名称', '评分', '标题', '内容']]
-user_data = user_data[['标题', '内容']]
-user_data = pd.DataFrame(user_data).fillna({'标题': '0', '内容': '0'})
+user_data = user_data[['标题'.encode('utf-8'), '内容'.encode('utf-8')]]
+user_data = pd.DataFrame(user_data).fillna({'标题'.encode('utf-8'): '0'.encode('utf-8'), '内容'.encode('utf-8'): '0'.encode('utf-8')})
 user_data = np.array(user_data)
 row_user_data = user_data.shape[0]
 column_user_data = user_data.shape[1]
 
-label_data = pd.read_excel('帖子标签.xlsx')
+label_data = pd.read_excel('帖子标签.xlsx'.encode('utf-8'))
 label_data = np.array(label_data)
 row_label_data = label_data.shape[0]
 

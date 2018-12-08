@@ -5,7 +5,7 @@ from sklearn.cluster import KMeans, hierarchical
 from sklearn import metrics
 import numpy as np
 # from mysql_data_precessing import test_vector
-from user_cf import cosine_similarity
+# from user_cf import cosine_similarity
 from operator import itemgetter
 from data_preprocessing import label_data, comment_data_matrix, label_comment_matrix
 from keras.models import load_model
