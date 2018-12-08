@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sklearn.cluster import KMeans, hierarchical
+from sklearn.cluster import hierarchical
 # import matplotlib.pyplot as plt
 from sklearn import metrics
 import numpy as np
@@ -105,17 +105,17 @@ def semi_kMeans(L, U, label_list, distMeas=distEclud, initial_centriod=newCent):
                     minDist = distJI; minIndex = j
             if clusterAssment[i] != minIndex: clusterChanged = True
             clusterAssment[i] = minIndex
-    return clusterAssment
+    return clusterAssment[100:]
 
+
+label_ = label_data[:, 0]
+encoder = load_model('encoder_label.h5')
+x_train_encoded = encoder.predict(comment_data_matrix)
+x_test_encoded = encoder.predict(label_comment_matrix)
+x_label = semi_kMeans(x_test_encoded, x_train_encoded, label_, distMeas=distEclud, initial_centriod=newCent)
 
 if __name__ == '__main__':
-    label_ = label_data[:, 0]
-    encoder = load_model('encoder_label.h5')
-    x_train_encoded = encoder.predict(comment_data_matrix)
-    x_test_encoded = encoder.predict(label_comment_matrix)
-    a = semi_kMeans(x_test_encoded, x_train_encoded, label_, distMeas=distEclud, initial_centriod=newCent)
-    a = a[100:]
-    b = metrics.calinski_harabaz_score(x_train_encoded, a)
+    b = metrics.calinski_harabaz_score(x_train_encoded, x_label)
     # cluster_dict = cluster()
     # # 计算某个类别中元素之间的相似度
     # sim_matrix = cosine_sim_matrix(cluster_dict[0], test_vector)
