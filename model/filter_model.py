@@ -4,6 +4,7 @@ from keras.layers import Dense, Dropout, Input
 from keras.models import Sequential, Model
 from keras.utils import to_categorical
 from keras import regularizers
+from keras.callbacks import EarlyStopping
 # from keras.models import load_model
 # from vae_keras import num_classes
 from data_preprocessing import comment_data_matrix
@@ -17,13 +18,15 @@ def fit_linear_model(X_train, Y_train, node1, node2, batch_size, epoch):
     # create model
     model = Sequential()
     model.add(Dense(node1, input_dim=X_train.shape[1], kernel_initializer='normal', activation='relu'))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
     model.add(Dense(node2, activation='relu'))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
     # model.add(Dense(16, activation='relu'))
-    model.add(Dense(32, input_dim=128,
-                    kernel_regularizer=regularizers.l2(0.1)))
-    model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
+    # model.add(Dense(64, input_dim=128,
+    #                 kernel_regularizer=regularizers.l2(1e-5), activity_regularizer=regularizers.l1(0.00017)))
+    # model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
+    # early_stopping = EarlyStopping(monitor='acc', patience=20, verbose=0, mode='auto')
+
     # model.add(Dense(1, init='normal'))
     # Compile model
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -131,12 +134,12 @@ if __name__ == '__main__':
 
     model = fit_linear_model(X_train=x_train,
                              Y_train=y_train,
-                             epoch=100,
+                             epoch=200,
                              node1=256,
                              node2=128,
-                             batch_size=32)
-    model.save('mysql_recommendation.h5')
+                             batch_size=128)
+    # model.save('mysql_recommendation.h5')
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
-    # predict = model.predict(test_x)
+    predict = model.predict(x_test)

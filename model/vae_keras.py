@@ -15,11 +15,11 @@ x_train = comment_data_matrix
 batch_size = 128
 original_dim = x_train.shape[1]
 # 隐变量取2维只是为了方便后面画图
-latent_dim = 100
-intermediate_dim = 256
-intermediate_dim1 = 128
+latent_dim = 64
+intermediate_dim = 512
+intermediate_dim1 = 256
 intermediate_dim2 = 128
-epochs = 100
+epochs = 400
 epsilon_std = 0.1
 num_classes = 10
 
@@ -111,7 +111,7 @@ def train_vae_model():
     vae.compile(optimizer='adam')
     vae.summary()
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=0, mode='auto')
+    early_stopping = EarlyStopping(monitor='val_loss', patience=20, verbose=0, mode='auto')
 
     vae.fit(x_train,
             shuffle=True,
@@ -171,23 +171,17 @@ def encoder_model():
 
     # add_loss是新增的方法，用于更灵活地添加各种loss
     vae.add_loss(vae_loss)
-    vae.compile(optimizer='rmsprop')
+    vae.compile(optimizer='adam')
     vae.summary()
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=0, mode='auto')
+    early_stopping = EarlyStopping(monitor='val_loss', patience=20, verbose=0, mode='auto')
 
     vae.fit(x_train,
             shuffle=True,
             epochs=epochs,
             batch_size=batch_size,
-            validation_data=(x_test, None),
-            callbacks=[early_stopping])
+            validation_data=(x_test, None))
+            # callbacks=[early_stopping])
 
-    # x_test_encoded = encoder.predict(x_test, batch_size=batch_size)
-    # plt.figure(figsize=(6, 6))
-    # plt.scatter(x_test_encoded[:, 0], x_test_encoded[:, 1], c=y_test_)
-    # plt.colorbar()
-    # plt.show()
-    #
     # # 构建生成器
     # decoder_input = Input(shape=(latent_dim,))
     # _h_decoded = decoder_h(decoder_input)
@@ -205,13 +199,13 @@ def encoder_model():
 # grid_x = norm.ppf(np.linspace(0.05, 0.95, n))
 # grid_y = norm.ppf(np.linspace(0.05, 0.95, n))
 
-encoder = encoder_model()
-encoder.save('encoder_label.h5')
-# x_train_encoded = encoder.predict(x_train)
-# x_test_encoded = encoder.predict(x_test)
 
+if __name__ == '__main__':
+    encoder = encoder_model()
+    encoder.save('encoder_label.h5')
+    # x_train_encoded = encoder.predict(x_train)
+    # x_test_encoded = encoder.predict(x_test)
 
-# if __name__ == '__main__':
     # space = {"latent_dim": hp.choice("node1", range(10, 128))}
     # algo = partial(tpe.suggest, n_startup_jobs=10)
     # best = fmin(train_vae_model, space, algo=algo, max_evals=100)
@@ -223,6 +217,10 @@ encoder.save('encoder_label.h5')
     # encoder = encoder_model()
     # x_train_encoded = encoder.predict(x_train)
     # x_test_encoded = encoder.predict(x_test)
-    # plt.scatter(x_test_encoded[:, 0], x_test_encoded[:, 1], c=np.squeeze(y_test_pred), s=3)
+
+    # y_test = encoder.predict(x_test)
+    # from K_means import label_
+    # import matplotlib.pyplot as plt
+    # plt.scatter(y_test[:, 0], y_test[:, 1], c=np.squeeze(label_), s=3)
     # plt.colorbar()
     # plt.show()

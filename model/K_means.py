@@ -3,9 +3,9 @@
 from sklearn.cluster import hierarchical
 # import matplotlib.pyplot as plt
 from sklearn import metrics
+from numpy.linalg import norm
 import numpy as np
 # from mysql_data_precessing import test_vector
-# from user_cf import cosine_similarity
 from operator import itemgetter
 from data_preprocessing import label_data, comment_data_matrix, label_comment_matrix
 from keras.models import load_model
@@ -22,6 +22,11 @@ from keras.models import load_model
 # bh = Birch(n_clusters=10)
 # y_p2 = bh.fit_predict(test_vector)
 # b = metrics.calinski_harabaz_score(test_vector, y_p2)
+
+
+def cosine_similarity(m1, m2):
+    cos_sim = np.dot(m1, m2) / (norm(m1) * norm(m2))
+    return 1 - cos_sim
 
 
 # 建立相似度矩阵，输入一个字典，输出字典中元素两两之间的相似度,由高到低排序
@@ -71,7 +76,6 @@ def newCent(L, label_list):
     centroids = []
     label_list = np.unique(label_list)
     for i in label_list:
-        # L_i = L[(L[:,-1]) == i]
         L_i = L[i: i*10]
         cent_i = np.mean(L_i, 0)
         centroids.append(cent_i)
@@ -109,7 +113,7 @@ def semi_kMeans(L, U, label_list, distMeas=distEclud, initial_centriod=newCent):
 
 
 label_ = label_data[:, 0]
-encoder = load_model('encoder_label.h5')
+encoder = load_model('encoder_label1.h5')
 x_train_encoded = encoder.predict(comment_data_matrix)
 x_test_encoded = encoder.predict(label_comment_matrix)
 x_label = semi_kMeans(x_test_encoded, x_train_encoded, label_, distMeas=distEclud, initial_centriod=newCent)
