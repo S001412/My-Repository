@@ -5,11 +5,13 @@ import copy
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn import preprocessing
-from jieba import analyse
+# from jieba import analyse
+from jieba_fast import analyse
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.sequence import pad_sequences
 from gensim.models import KeyedVectors
-from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import normalize
+import multiprocessing
 
 
 def label_onehot(array, vocab_size, length):
@@ -42,7 +44,7 @@ def onehot_encoder(data):
 
 
 # 将分词后的结果转变为词向量，输入 array，输出array
-def word_vectorization(word_model, array, row_array, limit):
+def word_vectorization(array, row_array, limit, word_model):
     # 用来存储单个词语向量化后的结果，长度由生成词模型时的设置解果决定
     size = 100
     res_array = np.zeros(size * limit)
@@ -70,13 +72,56 @@ def word_vectorization(word_model, array, row_array, limit):
     return res_array
 
 
-user_data = pd.read_excel('评论信息+用户信息.xlsx')
+def work_2_vector(mysql_data, row_mysql_data, word_model, tfidf):
+    # 基于TF-IDF算法进行关键词抽取
+    description_data = copy.deepcopy(mysql_data[:, 1])
+    for i in range(row_mysql_data):
+        description_list = tfidf(mysql_data[i, 1])
+        description_data[i] = ' '.join(description_list)
+    des_word_array = word_vectorization(description_data, row_mysql_data, 10, word_model=word_model)
+    return des_word_array
+
+
+# 数据库景点数据处理，输入[{content}]型数据,输出一个矩阵
+# def data_processing():
+user_data = pd.read_excel('评论信息1.xlsx')
 # user_data = user_data[['有用数', '感谢次数', '总分', '评论数', '读者数', '景点名称', '评分', '标题', '内容']]
 user_data = user_data[['标题', '内容']]
 user_data = pd.DataFrame(user_data).fillna({'标题': '0', '内容': '0'})
 user_data = np.array(user_data)
 row_user_data = user_data.shape[0]
-column_user_data = user_data.shape[1]
+# word_model = KeyedVectors.load_word2vec_format("comment.model.bin", binary=True)
+word_model = KeyedVectors.load("comment_model.kv", mmap='r')
+tfidf = analyse.extract_tags
+
+# t1 = time.time()
+# # 以下内容分成两个进程进行，提高运行速度
+# pool = multiprocessing.Pool(processes=2)
+# processing_results = []
+# half_row_data = int(row_mysql_data / 2)
+# description_data = copy.deepcopy(user_data[:, 1])
+# for i in range(row_mysql_data):
+#     description_list = tfidf(user_data[i, 1])
+#     description_data[i] = ' '.join(description_list)
+#
+#
+# # des_word_array = word_vectorization(description_data, row_mysql_data, 10, word_model=word_model)
+# processing_results.append(pool.apply_async(word_vectorization,
+#                                            (user_data[:half_row_data, :], half_row_data, 10, word_model)))
+# processing_results.append(pool.apply_async(word_vectorization,
+#                                            (user_data[half_row_data:, :], row_mysql_data - half_row_data, 10,
+#                                             word_model)))
+# # 关闭进程池，表示不能再往进程池中添加进程，需要在join之前调用
+# pool.close()
+# # 等待进程池中的所有进程执行完毕
+# pool.join()
+# muti_processing_res = np.zeros((1, 1000))
+# for res in processing_results:
+#     muti_processing_res = np.vstack((muti_processing_res, res.get()))
+# muti_processing_res = np.delete(muti_processing_res, 0, axis=0)
+# t2 = time.time()
+# print(t2-t1)
+
 
 label_data = pd.read_excel('帖子标签.xlsx')
 label_data = np.array(label_data)
@@ -88,7 +133,6 @@ row_label_data = label_data.shape[0]
 # user_rating_score = min_max_scale(user_data[:, 6], row_user_data)
 # input_vec = user_rating_score
 
-tfidf = analyse.extract_tags
 # comment_data = copy.deepcopy(user_data[:, 0])
 comment_data = user_data[:, 0]
 for i in range(row_user_data):
@@ -104,10 +148,14 @@ for l in range(row_label_data):
     label_comment_list = tfidf(label_data[l, 1])
     label_comment[l] = ' '.join(label_comment_list)
 
+
 # 读取模型，构建词向量矩阵
-word_model = KeyedVectors.load_word2vec_format("comment.model.bin", binary=True)
-comment_data_matrix = word_vectorization(word_model, comment_data, row_user_data, 10)
-label_comment_matrix = word_vectorization(word_model, label_comment, row_label_data, 10)
+comment_data_matrix = word_vectorization(comment_data, row_user_data, 10, word_model)
+comment_data_matrix = normalize(comment_data_matrix)
+
+label_comment_matrix = word_vectorization(label_comment, row_label_data, 10, word_model)
+label_comment_matrix = normalize(label_comment_matrix)
+
 
 # label_comment_matrix = np.hstack((label_comment_array, np.zeros((row_label_data, 1))))
 #

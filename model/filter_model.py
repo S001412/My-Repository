@@ -138,7 +138,7 @@ if __name__ == '__main__':
                              node1=256,
                              node2=128,
                              batch_size=128)
-    # model.save('mysql_recommendation.h5')
+    model.save('mysql_recommendation.h5')
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
