@@ -113,7 +113,7 @@ def semi_kMeans(L, U, label_list, distMeas=distEclud, initial_centriod=newCent):
 
 
 label_ = label_data[:, 0]
-encoder = load_model('encoder_label1.h5')
+encoder = load_model('encoder_label.h5')
 x_train_encoded = encoder.predict(comment_data_matrix)
 x_test_encoded = encoder.predict(label_comment_matrix)
 x_label = semi_kMeans(x_test_encoded, x_train_encoded, label_, distMeas=distEclud, initial_centriod=newCent)

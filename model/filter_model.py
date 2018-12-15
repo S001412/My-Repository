@@ -22,9 +22,9 @@ def fit_linear_model(X_train, Y_train, node1, node2, batch_size, epoch):
     model.add(Dense(node2, activation='relu'))
     model.add(Dropout(0.25))
     # model.add(Dense(16, activation='relu'))
-    # model.add(Dense(64, input_dim=128,
-    #                 kernel_regularizer=regularizers.l2(1e-5), activity_regularizer=regularizers.l1(0.00017)))
-    # model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
+    model.add(Dense(128, input_dim=128,
+                     kernel_regularizer=regularizers.l2(0.001), activity_regularizer=regularizers.l1(0.0007)))
+    model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
     # early_stopping = EarlyStopping(monitor='acc', patience=20, verbose=0, mode='auto')
 
     # model.add(Dense(1, init='normal'))

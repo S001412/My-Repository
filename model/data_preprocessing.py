@@ -5,8 +5,8 @@ import copy
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn import preprocessing
-# from jieba import analyse
-from jieba_fast import analyse
+from jieba import analyse
+# from jieba_fast import analyse
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.sequence import pad_sequences
 from gensim.models import KeyedVectors
@@ -84,14 +84,14 @@ def work_2_vector(mysql_data, row_mysql_data, word_model, tfidf):
 
 # 数据库景点数据处理，输入[{content}]型数据,输出一个矩阵
 # def data_processing():
-user_data = pd.read_excel('评论信息1.xlsx')
+user_data = pd.read_excel('评论信息+用户信息.xlsx')
 # user_data = user_data[['有用数', '感谢次数', '总分', '评论数', '读者数', '景点名称', '评分', '标题', '内容']]
 user_data = user_data[['标题', '内容']]
 user_data = pd.DataFrame(user_data).fillna({'标题': '0', '内容': '0'})
 user_data = np.array(user_data)
 row_user_data = user_data.shape[0]
-# word_model = KeyedVectors.load_word2vec_format("comment.model.bin", binary=True)
-word_model = KeyedVectors.load("comment_model.kv", mmap='r')
+word_model = KeyedVectors.load_word2vec_format("comment.model.bin", binary=True)
+# word_model = KeyedVectors.load("comment_model.kv", mmap='r')
 tfidf = analyse.extract_tags
 
 # t1 = time.time()
