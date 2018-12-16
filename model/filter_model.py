@@ -18,12 +18,12 @@ def fit_linear_model(X_train, Y_train, node1, node2, batch_size, epoch):
     # create model
     model = Sequential()
     model.add(Dense(node1, input_dim=X_train.shape[1], kernel_initializer='normal', activation='relu'))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.5))
     model.add(Dense(node2, activation='relu'))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.4))
     # model.add(Dense(16, activation='relu'))
     model.add(Dense(128, input_dim=128,
-                     kernel_regularizer=regularizers.l2(0.001), activity_regularizer=regularizers.l1(0.0007)))
+                    kernel_regularizer=regularizers.l2(0.001), activity_regularizer=regularizers.l1(0.0003)))
     model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
     # early_stopping = EarlyStopping(monitor='acc', patience=20, verbose=0, mode='auto')
 
@@ -130,16 +130,16 @@ if __name__ == '__main__':
     # encoder = load_model('encoder_label.h5')
     # x_train_encoded = encoder.predict(comment_data_matrix)
     x_label = to_categorical(x_label, num_classes)
-    x_train, x_test, y_train, y_test = train_test_split(comment_data_matrix, x_label, test_size=0.2)
+    x_train, x_test, y_train, y_test = train_test_split(comment_data_matrix, x_label, test_size=0.1)
 
     model = fit_linear_model(X_train=x_train,
                              Y_train=y_train,
                              epoch=200,
-                             node1=256,
-                             node2=128,
+                             node1=512,
+                             node2=256,
                              batch_size=128)
     model.save('mysql_recommendation.h5')
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
-    predict = model.predict(x_test)
+    # predict = model.predict(x_test)
