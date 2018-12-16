@@ -12,6 +12,7 @@ from keras.preprocessing.sequence import pad_sequences
 from gensim.models import KeyedVectors
 from sklearn.preprocessing import normalize
 import multiprocessing
+import time
 
 
 def label_onehot(array, vocab_size, length):
@@ -84,44 +85,13 @@ def work_2_vector(mysql_data, row_mysql_data, word_model, tfidf):
 
 # 数据库景点数据处理，输入[{content}]型数据,输出一个矩阵
 # def data_processing():
-user_data = pd.read_excel('评论信息+用户信息.xlsx')
+user_data = pd.read_excel('mysql_comment_data.xlsx')
 # user_data = user_data[['有用数', '感谢次数', '总分', '评论数', '读者数', '景点名称', '评分', '标题', '内容']]
-user_data = user_data[['标题', '内容']]
-user_data = pd.DataFrame(user_data).fillna({'标题': '0', '内容': '0'})
 user_data = np.array(user_data)
 row_user_data = user_data.shape[0]
-word_model = KeyedVectors.load_word2vec_format("comment.model.bin", binary=True)
-# word_model = KeyedVectors.load("comment_model.kv", mmap='r')
+# word_model = KeyedVectors.load_word2vec_format("comment.model.bin", binary=True)
+word_model = KeyedVectors.load("comment_model.kv", mmap='r')
 tfidf = analyse.extract_tags
-
-# t1 = time.time()
-# # 以下内容分成两个进程进行，提高运行速度
-# pool = multiprocessing.Pool(processes=2)
-# processing_results = []
-# half_row_data = int(row_mysql_data / 2)
-# description_data = copy.deepcopy(user_data[:, 1])
-# for i in range(row_mysql_data):
-#     description_list = tfidf(user_data[i, 1])
-#     description_data[i] = ' '.join(description_list)
-#
-#
-# # des_word_array = word_vectorization(description_data, row_mysql_data, 10, word_model=word_model)
-# processing_results.append(pool.apply_async(word_vectorization,
-#                                            (user_data[:half_row_data, :], half_row_data, 10, word_model)))
-# processing_results.append(pool.apply_async(word_vectorization,
-#                                            (user_data[half_row_data:, :], row_mysql_data - half_row_data, 10,
-#                                             word_model)))
-# # 关闭进程池，表示不能再往进程池中添加进程，需要在join之前调用
-# pool.close()
-# # 等待进程池中的所有进程执行完毕
-# pool.join()
-# muti_processing_res = np.zeros((1, 1000))
-# for res in processing_results:
-#     muti_processing_res = np.vstack((muti_processing_res, res.get()))
-# muti_processing_res = np.delete(muti_processing_res, 0, axis=0)
-# t2 = time.time()
-# print(t2-t1)
-
 
 label_data = pd.read_excel('帖子标签.xlsx')
 label_data = np.array(label_data)
@@ -136,11 +106,7 @@ row_label_data = label_data.shape[0]
 # comment_data = copy.deepcopy(user_data[:, 0])
 comment_data = user_data[:, 0]
 for i in range(row_user_data):
-    if type(user_data[i, 0]) != str:
-        user_data[i, 0] = '0'
-    title_list = tfidf(user_data[i, 0])
-    comment_list = tfidf(user_data[i, 1])
-    comment_data[i] = ' '.join(title_list)
+    comment_list = tfidf(user_data[i, 0])
     comment_data[i] = ' '.join(comment_list)
 
 label_comment = label_data[:, 1]
@@ -149,9 +115,46 @@ for l in range(row_label_data):
     label_comment[l] = ' '.join(label_comment_list)
 
 
+t1 = time.time()
+# 以下内容分成两个进程进行，提高运行速度
+pool = multiprocessing.Pool(processes=4)
+processing_results = []
+a1 = int(row_user_data / 4)
+a2 = int(row_user_data / 2)
+a3 = a1 + a2
+# description_data = copy.deepcopy(user_data[:, 1])
+# for i in range(row_mysql_data):
+#     description_list = tfidf(user_data[i, 1])
+#     description_data[i] = ' '.join(description_list)
+#
+#
+# # des_word_array = word_vectorization(description_data, row_mysql_data, 10, word_model=word_model)
+processing_results.append(pool.apply_async(word_vectorization,
+                                           (comment_data[:a1], a1, 10, word_model)))
+processing_results.append(pool.apply_async(word_vectorization,
+                                           (comment_data[a1:a2], a2-a1, 10, word_model)))
+processing_results.append(pool.apply_async(word_vectorization,
+                                           (comment_data[a2:a3], a3-a2, 10, word_model)))
+processing_results.append(pool.apply_async(word_vectorization,
+                                           (comment_data[:a3], row_user_data-a3, 10, word_model)))
+# 关闭进程池，表示不能再往进程池中添加进程，需要在join之前调用
+pool.close()
+# 等待进程池中的所有进程执行完毕
+pool.join()
+muti_processing_res = np.zeros((1, 1000))
+for res in processing_results:
+    muti_processing_res = np.vstack((muti_processing_res, res.get()))
+muti_processing_res = np.delete(muti_processing_res, 0, axis=0)
+t2 = time.time()
+print(t2-t1)
+
+
 # 读取模型，构建词向量矩阵
-comment_data_matrix = word_vectorization(comment_data, row_user_data, 10, word_model)
-comment_data_matrix = normalize(comment_data_matrix)
+# ti = time.time()
+# comment_data_matrix = word_vectorization(comment_data, row_user_data, 10, word_model)
+# t2 = time.time()
+# print(t2-t1)
+comment_data_matrix = normalize(muti_processing_res)
 
 label_comment_matrix = word_vectorization(label_comment, row_label_data, 10, word_model)
 label_comment_matrix = normalize(label_comment_matrix)
