@@ -87,7 +87,7 @@ def work_2_vector(mysql_data, row_mysql_data, word_model, tfidf):
 # def data_processing():
 user_data = pd.read_excel('mysql_comment_data.xlsx')
 # user_data = user_data[['有用数', '感谢次数', '总分', '评论数', '读者数', '景点名称', '评分', '标题', '内容']]
-user_data = np.array(user_data)
+user_data = np.array(user_data)[:20000]
 row_user_data = user_data.shape[0]
 # word_model = KeyedVectors.load_word2vec_format("wiki_comment.model.bin", binary=True)
 word_model = KeyedVectors.load("comment_model.kv", mmap='r')
